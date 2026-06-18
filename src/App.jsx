@@ -235,20 +235,21 @@ function Header({ isDark, setIsDark, t }) {
   );
 }
 
-/* ─── HERO (With Parallax Reveal Strips) ─── */
+/* ─── HERO (With Parallax Reveal Strips & Scroll-Pin) ─── */
 function Hero({ t }) {
   const typeWords = ["SCALE", "SELL", "GROW", "LAUNCH", "EXPAND"];
   const [wordIndex, setWordIndex] = useState(0);
 
   const containerRef = useRef(null);
+  // Target the outer 200vh container to track full pinning scroll progress
   const { scrollYProgress } = useScroll({ target: containerRef, offset: ["start start", "end start"] });
   const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
 
-  // Large range translation for active image changes (reveal pattern)
+  // Map translations to the first 50% of scroll progress (first 100vh scroll while Hero is pinned)
   // Left column goes DOWN (starts high at -45%, slides down to 5%)
-  const y1 = useTransform(smoothProgress, [0, 1], ["-45%", "5%"]);
+  const y1 = useTransform(smoothProgress, [0, 0.5], ["-45%", "5%"]);
   // Right column goes UP (starts low at 5%, slides up to -45%)
-  const y2 = useTransform(smoothProgress, [0, 1], ["5%", "-45%"]);
+  const y2 = useTransform(smoothProgress, [0, 0.5], ["5%", "-45%"]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -258,93 +259,104 @@ function Hero({ t }) {
   }, []);
 
   return (
-    <section
-      id="hero"
-      ref={containerRef}
-      className="sticky-section"
-      style={{ backgroundColor: t.bg, zIndex: 10, display: "flex", flexDirection: "column", justifyContent: "center", overflow: "hidden" }}
-    >
-      <div className="ambient-glow glow-blue" style={{ width: 600, height: 600, top: "0%", right: "5%", position: "absolute" }} />
-      <div className="ambient-glow glow-purple" style={{ width: 800, height: 800, bottom: "-20%", left: "-10%", position: "absolute" }} />
+    <div ref={containerRef} style={{ height: "200vh", position: "relative" }}>
+      <section
+        id="hero"
+        className="sticky-section"
+        style={{
+          backgroundColor: t.bg,
+          zIndex: 10,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          overflow: "hidden",
+          height: "100vh",
+          position: "sticky",
+          top: 0
+        }}
+      >
+        <div className="ambient-glow glow-blue" style={{ width: 600, height: 600, top: "0%", right: "5%", position: "absolute" }} />
+        <div className="ambient-glow glow-purple" style={{ width: 800, height: 800, bottom: "-20%", left: "-10%", position: "absolute" }} />
 
-      <div style={{ position: "relative", zIndex: 10, padding: "0 6%", maxWidth: 1600, width: "100%", margin: "0 auto", height: "100vh", display: "flex", alignItems: "center" }}>
-        
-        {/* Left Side: Typography (100% on mobile, 55% on desktop) */}
-        <div style={{ width: "100%", maxWidth: 700, flexShrink: 0, position: "relative", zIndex: 20 }}>
-          <motion.div variants={staggerContainer} initial="hidden" animate="visible">
-            <motion.h1
-              variants={fadeUp}
-              custom={1}
-              style={{
-                fontFamily: "Outfit, sans-serif", color: t.textLight,
-                fontSize: "clamp(2.5rem, 6.5vw, 6.5rem)",
-                fontWeight: 300, lineHeight: 1.05, letterSpacing: "-0.01em",
-                textAlign: "left",
-              }}
-            >
-              Creative Solutions For{" "}
-              <br className="hidden md:block" />
-              Brands Ready To{" "}
-              <span className="block md:inline-block" style={{ position: "relative", minWidth: 280, verticalAlign: "top" }}>
-                <AnimatePresence mode="wait">
-                  <motion.span
-                    key={wordIndex}
-                    initial={{ y: 24, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: -24, opacity: 0 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                    style={{ position: "absolute", left: 0, top: 0, color: "#60A5FA", fontWeight: 700 }}
-                  >
-                    {typeWords[wordIndex]}
-                  </motion.span>
-                </AnimatePresence>
-                <span style={{ visibility: "hidden", fontWeight: 700 }}>EXPAND</span>
-              </span>
-            </motion.h1>
-          </motion.div>
-        </div>
-
-        {/* Right Side: Straight Parallax Reveal Strips (Hidden on mobile/tablet) */}
-        <div className="hidden lg:flex" style={{ position: "absolute", right: "2%", top: "-25%", bottom: "-25%", width: "45%", gap: 24, transform: "rotate(-5deg)", opacity: 0.85 }}>
+        <div style={{ position: "relative", zIndex: 10, padding: "0 6%", maxWidth: 1600, width: "100%", margin: "0 auto", height: "100vh", display: "flex", alignItems: "center" }}>
           
-          {/* Column 1 (Scrolls Down) */}
-          <motion.div style={{ display: "flex", flexDirection: "column", gap: 24, flex: 1, y: y1 }}>
-            {heroImagesColumn1.map((src, i) => (
-              <motion.div
-                key={i}
-                whileHover={{ scale: 1.03 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-                style={{ width: "100%", height: "42vh", borderRadius: 24, overflow: "hidden", boxShadow: "0 20px 40px rgba(0,0,0,0.3)", border: `1px solid ${t.border}` }}
+          {/* Left Side: Typography (100% on mobile, 55% on desktop) */}
+          <div style={{ width: "100%", maxWidth: 700, flexShrink: 0, position: "relative", zIndex: 20 }}>
+            <motion.div variants={staggerContainer} initial="hidden" animate="visible">
+              <motion.h1
+                variants={fadeUp}
+                custom={1}
+                style={{
+                  fontFamily: "Outfit, sans-serif", color: t.textLight,
+                  fontSize: "clamp(2.5rem, 6.5vw, 6.5rem)",
+                  fontWeight: 300, lineHeight: 1.05, letterSpacing: "-0.01em",
+                  textAlign: "left",
+                }}
               >
-                <img src={src} alt="Portfolio Sample" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              </motion.div>
-            ))}
-          </motion.div>
+                Creative Solutions For{" "}
+                <br className="hidden md:block" />
+                Brands Ready To{" "}
+                <span className="block md:inline-block" style={{ position: "relative", minWidth: 280, verticalAlign: "top" }}>
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={wordIndex}
+                      initial={{ y: 24, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: -24, opacity: 0 }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                      style={{ position: "absolute", left: 0, top: 0, color: "#60A5FA", fontWeight: 700 }}
+                    >
+                      {typeWords[wordIndex]}
+                    </motion.span>
+                  </AnimatePresence>
+                  <span style={{ visibility: "hidden", fontWeight: 700 }}>EXPAND</span>
+                </span>
+              </motion.h1>
+            </motion.div>
+          </div>
 
-          {/* Column 2 (Scrolls Up) */}
-          <motion.div style={{ display: "flex", flexDirection: "column", gap: 24, flex: 1, y: y2 }}>
-            {heroImagesColumn2.map((src, i) => (
-              <motion.div
-                key={i}
-                whileHover={{ scale: 1.03 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-                style={{ width: "100%", height: "42vh", borderRadius: 24, overflow: "hidden", boxShadow: "0 20px 40px rgba(0,0,0,0.3)", border: `1px solid ${t.border}` }}
-              >
-                <img src={src} alt="Portfolio Sample" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              </motion.div>
-            ))}
-          </motion.div>
-          
-        </div>
-      </div>
+          {/* Right Side: Straight Parallax Reveal Strips (Hidden on mobile/tablet) */}
+          <div className="hidden lg:flex" style={{ position: "absolute", right: "2%", top: "-25%", bottom: "-25%", width: "45%", gap: 24, transform: "rotate(-5deg)", opacity: 0.85 }}>
+            
+            {/* Column 1 (Scrolls Down) */}
+            <motion.div style={{ display: "flex", flexDirection: "column", gap: 24, flex: 1, y: y1 }}>
+              {heroImagesColumn1.map((src, i) => (
+                <motion.div
+                  key={i}
+                  whileHover={{ scale: 1.03 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  style={{ width: "100%", height: "42vh", borderRadius: 24, overflow: "hidden", boxShadow: "0 20px 40px rgba(0,0,0,0.3)", border: `1px solid ${t.border}` }}
+                >
+                  <img src={src} alt="Portfolio Sample" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </motion.div>
+              ))}
+            </motion.div>
 
-      <div style={{ position: "absolute", bottom: 48, left: "6%", display: "flex", alignItems: "center", gap: 12, zIndex: 30 }}>
-        <div className="animate-scroll-bounce">
-          <ArrowDown style={{ width: 14, height: 14, color: t.textTertiary }} />
+            {/* Column 2 (Scrolls Up) */}
+            <motion.div style={{ display: "flex", flexDirection: "column", gap: 24, flex: 1, y: y2 }}>
+              {heroImagesColumn2.map((src, i) => (
+                <motion.div
+                  key={i}
+                  whileHover={{ scale: 1.03 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  style={{ width: "100%", height: "42vh", borderRadius: 24, overflow: "hidden", boxShadow: "0 20px 40px rgba(0,0,0,0.3)", border: `1px solid ${t.border}` }}
+                >
+                  <img src={src} alt="Portfolio Sample" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </motion.div>
+              ))}
+            </motion.div>
+            
+          </div>
         </div>
-        <span style={{ color: t.textTertiary, fontSize: 10, letterSpacing: "0.3em", textTransform: "uppercase", fontWeight: 500 }}>Scroll to Discover</span>
-      </div>
-    </section>
+
+        <div style={{ position: "absolute", bottom: 48, left: "6%", display: "flex", alignItems: "center", gap: 12, zIndex: 30 }}>
+          <div className="animate-scroll-bounce">
+            <ArrowDown style={{ width: 14, height: 14, color: t.textTertiary }} />
+          </div>
+          <span style={{ color: t.textTertiary, fontSize: 10, letterSpacing: "0.3em", textTransform: "uppercase", fontWeight: 500 }}>Scroll to Discover</span>
+        </div>
+      </section>
+    </div>
   );
 }
 
