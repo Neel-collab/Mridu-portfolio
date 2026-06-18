@@ -243,7 +243,7 @@ function Hero({ t }) {
   const containerRef = useRef(null);
   // Target the outer 200vh container to track full pinning scroll progress
   const { scrollYProgress } = useScroll({ target: containerRef, offset: ["start start", "end start"] });
-  const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
+  const smoothProgress = useSpring(scrollYProgress, { stiffness: 60, damping: 25, mass: 0.4, restDelta: 0.0001 });
 
   // Map translations to the first 50% of scroll progress (first 100vh scroll while Hero is pinned)
   // Left column goes DOWN (starts high at -45%, slides down to 5%)
@@ -319,7 +319,7 @@ function Hero({ t }) {
           <div className="hidden lg:flex" style={{ position: "absolute", right: "2%", top: "-25%", bottom: "-25%", width: "45%", gap: 24, transform: "rotate(-5deg)", opacity: 0.85 }}>
             
             {/* Column 1 (Scrolls Down) */}
-            <motion.div style={{ display: "flex", flexDirection: "column", gap: 24, flex: 1, y: y1 }}>
+            <motion.div style={{ display: "flex", flexDirection: "column", gap: 24, flex: 1, y: y1, willChange: "transform" }}>
               {heroImagesColumn1.map((src, i) => (
                 <motion.div
                   key={i}
@@ -333,7 +333,7 @@ function Hero({ t }) {
             </motion.div>
 
             {/* Column 2 (Scrolls Up) */}
-            <motion.div style={{ display: "flex", flexDirection: "column", gap: 24, flex: 1, y: y2 }}>
+            <motion.div style={{ display: "flex", flexDirection: "column", gap: 24, flex: 1, y: y2, willChange: "transform" }}>
               {heroImagesColumn2.map((src, i) => (
                 <motion.div
                   key={i}
