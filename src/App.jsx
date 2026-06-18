@@ -42,13 +42,17 @@ const projects = [
 const heroImagesColumn1 = [
   "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop",
   "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?q=80&w=800&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1600607686527-6fb886090705?q=80&w=800&auto=format&fit=crop"
+  "https://images.unsplash.com/photo-1600607686527-6fb886090705?q=80&w=800&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1604871000636-074fa5117945?q=80&w=800&auto=format&fit=crop", // Abstract Art
+  "https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=800&auto=format&fit=crop"  // Fluid Abstract
 ];
 
 const heroImagesColumn2 = [
   "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=800&auto=format&fit=crop",
   "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=800&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?q=80&w=800&auto=format&fit=crop"
+  "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?q=80&w=800&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1549490349-8643362247b5?q=80&w=800&auto=format&fit=crop", // Minimalist Design
+  "https://images.unsplash.com/photo-1500462918020-f16c47572e5f?q=80&w=800&auto=format&fit=crop"  // Vibrant Abstract
 ];
 
 const categories = ["All", "Strategy", "Identity", "Packaging", "Digital", "Print", "Art Direction"];
@@ -231,54 +235,7 @@ function Header({ isDark, setIsDark, t }) {
   );
 }
 
-/* ─── HERO (With Ferris Wheel Parallax) ─── */
-function FerrisWheelImage({ src, index, total, scrollRotate, radius, t }) {
-  const angle = (index * 360) / total;
-  
-  // Inverse rotation to keep image upright relative to the screen
-  const inverseRotate = useTransform(scrollRotate, (r) => -angle - r);
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        width: 180,
-        height: 250,
-        marginLeft: -90,
-        marginTop: -125,
-        transform: `rotate(${angle}deg) translateY(-${radius}px)`,
-        transformOrigin: "center center",
-      }}
-    >
-      <motion.div
-        style={{
-          rotate: inverseRotate,
-          width: "100%",
-          height: "100%",
-          padding: 10,
-          backgroundColor: t.bgCard,
-          border: `1px solid ${t.border}`,
-          borderRadius: 16,
-          boxShadow: "0 12px 24px rgba(0,0,0,0.25)",
-        }}
-      >
-        <img
-          src={src}
-          alt="Portfolio Sample"
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            borderRadius: 10,
-          }}
-        />
-      </motion.div>
-    </div>
-  );
-}
-
+/* ─── HERO (With Parallax Reveal Strips) ─── */
 function Hero({ t }) {
   const typeWords = ["SCALE", "SELL", "GROW", "LAUNCH", "EXPAND"];
   const [wordIndex, setWordIndex] = useState(0);
@@ -287,14 +244,11 @@ function Hero({ t }) {
   const { scrollYProgress } = useScroll({ target: containerRef, offset: ["start start", "end start"] });
   const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
 
-  // Left wheel rotates clockwise (downward motion on the visible right side)
-  const leftRotate = useTransform(smoothProgress, [0, 1], [0, 120]);
-  // Right wheel rotates counter-clockwise (upward motion on the visible left side)
-  const rightRotate = useTransform(smoothProgress, [0, 1], [0, -120]);
-
-  const radius = 360; // radius of the ferris wheel
-  const leftWheelImages = [...heroImagesColumn1, ...heroImagesColumn1];
-  const rightWheelImages = [...heroImagesColumn2, ...heroImagesColumn2];
+  // Large range translation for active image changes (reveal pattern)
+  // Left column goes DOWN (starts high at -45%, slides down to 5%)
+  const y1 = useTransform(smoothProgress, [0, 1], ["-45%", "5%"]);
+  // Right column goes UP (starts low at 5%, slides up to -45%)
+  const y2 = useTransform(smoothProgress, [0, 1], ["5%", "-45%"]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -350,62 +304,34 @@ function Hero({ t }) {
           </motion.div>
         </div>
 
-        {/* Right Side: Ferris Wheel Parallax (Hidden on mobile/tablet) */}
-        <div className="hidden lg:block" style={{ position: "absolute", right: "2%", top: 0, bottom: 0, width: "45%", overflow: "hidden", opacity: 0.85, pointerEvents: "none" }}>
+        {/* Right Side: Straight Parallax Reveal Strips (Hidden on mobile/tablet) */}
+        <div className="hidden lg:flex" style={{ position: "absolute", right: "2%", top: "-25%", bottom: "-25%", width: "45%", gap: 24, transform: "rotate(-5deg)", opacity: 0.85 }}>
           
-          {/* Left Wheel (Rotates Clockwise -> downward in viewport) */}
-          <motion.div
-            style={{
-              position: "absolute",
-              left: "15%",
-              top: "50%",
-              width: 720,
-              height: 720,
-              x: "-50%",
-              y: "-50%",
-              rotate: leftRotate,
-              transformOrigin: "center center",
-              zIndex: 10,
-            }}
-          >
-            {leftWheelImages.map((src, i) => (
-              <FerrisWheelImage
+          {/* Column 1 (Scrolls Down) */}
+          <motion.div style={{ display: "flex", flexDirection: "column", gap: 24, flex: 1, y: y1 }}>
+            {heroImagesColumn1.map((src, i) => (
+              <motion.div
                 key={i}
-                src={src}
-                index={i}
-                total={leftWheelImages.length}
-                scrollRotate={leftRotate}
-                radius={radius}
-                t={t}
-              />
+                whileHover={{ scale: 1.03 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                style={{ width: "100%", height: "42vh", borderRadius: 24, overflow: "hidden", boxShadow: "0 20px 40px rgba(0,0,0,0.3)", border: `1px solid ${t.border}` }}
+              >
+                <img src={src} alt="Portfolio Sample" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              </motion.div>
             ))}
           </motion.div>
 
-          {/* Right Wheel (Rotates Counter-Clockwise -> upward in viewport) */}
-          <motion.div
-            style={{
-              position: "absolute",
-              left: "85%",
-              top: "50%",
-              width: 720,
-              height: 720,
-              x: "-50%",
-              y: "-50%",
-              rotate: rightRotate,
-              transformOrigin: "center center",
-              zIndex: 20,
-            }}
-          >
-            {rightWheelImages.map((src, i) => (
-              <FerrisWheelImage
+          {/* Column 2 (Scrolls Up) */}
+          <motion.div style={{ display: "flex", flexDirection: "column", gap: 24, flex: 1, y: y2 }}>
+            {heroImagesColumn2.map((src, i) => (
+              <motion.div
                 key={i}
-                src={src}
-                index={i}
-                total={rightWheelImages.length}
-                scrollRotate={rightRotate}
-                radius={radius}
-                t={t}
-              />
+                whileHover={{ scale: 1.03 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                style={{ width: "100%", height: "42vh", borderRadius: 24, overflow: "hidden", boxShadow: "0 20px 40px rgba(0,0,0,0.3)", border: `1px solid ${t.border}` }}
+              >
+                <img src={src} alt="Portfolio Sample" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              </motion.div>
             ))}
           </motion.div>
           
